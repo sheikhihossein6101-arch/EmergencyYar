@@ -114,8 +114,61 @@ val pc = PersianCalendar().apply {
     }
 }
 
+```kotlin
 private fun parseExpiry(input: String, type: String): String? {
-    val clean = input.trim().replace('-', '/').replace('۰','0').replace('۱','1').replace('۲','2')
+    val clean = input.trim()
+        .replace('-', '/')
+        .replace('۰', '0')
+        .replace('۱', '1')
+        .replace('۲', '2')
+        .replace('۳', '3')
+        .replace('۴', '4')
+        .replace('۵', '5')
+        .replace('۶', '6')
+        .replace('۷', '7')
+        .replace('۸', '8')
+        .replace('۹', '9')
+
+    val parts = clean.split('/')
+    if (parts.size != 3) return null
+
+    val y = parts[0].toIntOrNull() ?: return null
+    val m = parts[1].toIntOrNull() ?: return null
+    val d = parts[2].toIntOrNull() ?: return null
+
+    return try {
+        val millis: Long
+
+        if (type == "شمسی") {
+            val pc = PersianCalendar()
+            pc.timeZone = com.ibm.icu.util.TimeZone.getTimeZone("UTC")
+            pc.clear()
+            pc.isLenient = false
+            pc.set(PersianCalendar.YEAR, y)
+            pc.set(PersianCalendar.MONTH, m - 1)
+            pc.set(PersianCalendar.DAY_OF_MONTH, d)
+            millis = pc.timeInMillis
+        } else {
+            val c = Calendar.getInstance(
+                java.util.TimeZone.getTimeZone("UTC"),
+                Locale.US
+            )
+            c.clear()
+            c.isLenient = false
+            c.set(y, m - 1, d)
+            millis = c.timeInMillis
+        }
+
+        SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            .apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            .format(Date(millis))
+    } catch (_: Exception) {
+        null
+    }
+}
+```    val clean = input.trim().replace('-', '/').replace('۰','0').replace('۱','1').replace('۲','2')
         .replace('۳','3').replace('۴','4').replace('۵','5').replace('۶','6').replace('۷','7').replace('۸','8').replace('۹','9')
     val parts = clean.split('/')
     if (parts.size != 3) return null
