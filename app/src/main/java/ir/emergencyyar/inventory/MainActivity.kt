@@ -101,8 +101,7 @@ private fun expiryStatus(iso: String): Int {
     return when { days < 0 -> 0; days <= 90 -> 1; else -> 2 }
 }
 
-private fun isoToDisplay(iso: String, dateType: String): String {
-    val millis = isoToMillis(iso) ?: return iso
+private fun isoToDisplay(iso: String, dateType: String): String     val millis = isoToMillis(iso) ?: return iso
     val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US).apply { timeInMillis = millis }
     return if (dateType == "شمسی") {
 val pc = PersianCalendar().apply {
