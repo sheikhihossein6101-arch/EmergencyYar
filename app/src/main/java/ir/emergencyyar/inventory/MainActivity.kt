@@ -101,32 +101,46 @@ private fun expiryStatus(iso: String): Int {
     return when { days < 0 -> 0; days <= 90 -> 1; else -> 2 }
 }
 
-private fun isoToDisplay(iso: String, dateType: String): String     val millis = isoToMillis(iso) ?: return iso
-    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US).apply { timeInMillis = millis }
+private fun isoToDisplay(iso: String, dateType: String): String {
+    val millis = isoToMillis(iso) ?: return iso
+
     return if (dateType == "شمسی") {
-val pc = PersianCalendar().apply {
-    timeZone = TimeZone.getTimeZone("UTC")
-    timeInMillis = millis
-}        "%04d/%02d/%02d".format(Locale.US, pc.get(Calendar.YEAR), pc.get(Calendar.MONTH) + 1, pc.get(Calendar.DAY_OF_MONTH))
+        val pc = PersianCalendar(
+            com.ibm.icu.util.TimeZone.getTimeZone("UTC"),
+            Locale("fa", "IR")
+        )
+        pc.timeInMillis = millis
+
+        "%04d/%02d/%02d".format(
+            Locale.US,
+            pc.get(PersianCalendar.YEAR),
+            pc.get(PersianCalendar.MONTH) + 1,
+            pc.get(PersianCalendar.DAY_OF_MONTH)
+        )
     } else {
-        "%04d/%02d/%02d".format(Locale.US, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+        val cal = Calendar.getInstance(
+            java.util.TimeZone.getTimeZone("UTC"),
+            Locale.US
+        )
+        cal.timeInMillis = millis
+
+        "%04d/%02d/%02d".format(
+            Locale.US,
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH) + 1,
+            cal.get(Calendar.DAY_OF_MONTH)
+        )
     }
 }
 
-```kotlin
 private fun parseExpiry(input: String, type: String): String? {
     val clean = input.trim()
         .replace('-', '/')
-        .replace('۰', '0')
-        .replace('۱', '1')
-        .replace('۲', '2')
-        .replace('۳', '3')
-        .replace('۴', '4')
-        .replace('۵', '5')
-        .replace('۶', '6')
-        .replace('۷', '7')
-        .replace('۸', '8')
-        .replace('۹', '9')
+        .replace('۰', '0').replace('۱', '1')
+        .replace('۲', '2').replace('۳', '3')
+        .replace('۴', '4').replace('۵', '5')
+        .replace('۶', '6').replace('۷', '7')
+        .replace('۸', '8').replace('۹', '9')
 
     val parts = clean.split('/')
     if (parts.size != 3) return null
@@ -139,8 +153,10 @@ private fun parseExpiry(input: String, type: String): String? {
         val millis: Long
 
         if (type == "شمسی") {
-            val pc = PersianCalendar()
-            pc.timeZone = com.ibm.icu.util.TimeZone.getTimeZone("UTC")
+            val pc = PersianCalendar(
+                com.ibm.icu.util.TimeZone.getTimeZone("UTC"),
+                Locale("fa", "IR")
+            )
             pc.clear()
             pc.isLenient = false
             pc.set(PersianCalendar.YEAR, y)
@@ -148,14 +164,14 @@ private fun parseExpiry(input: String, type: String): String? {
             pc.set(PersianCalendar.DAY_OF_MONTH, d)
             millis = pc.timeInMillis
         } else {
-            val c = Calendar.getInstance(
+            val cal = Calendar.getInstance(
                 java.util.TimeZone.getTimeZone("UTC"),
                 Locale.US
             )
-            c.clear()
-            c.isLenient = false
-            c.set(y, m - 1, d)
-            millis = c.timeInMillis
+            cal.clear()
+            cal.isLenient = false
+            cal.set(y, m - 1, d)
+            millis = cal.timeInMillis
         }
 
         SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -166,31 +182,6 @@ private fun parseExpiry(input: String, type: String): String? {
     } catch (_: Exception) {
         null
     }
-}
-```    val clean = input.trim().replace('-', '/').replace('۰','0').replace('۱','1').replace('۲','2')
-        .replace('۳','3').replace('۴','4').replace('۵','5').replace('۶','6').replace('۷','7').replace('۸','8').replace('۹','9')
-    val parts = clean.split('/')
-    if (parts.size != 3) return null
-    val y = parts[0].toIntOrNull() ?: return null
-    val m = parts[1].toIntOrNull() ?: return null
-    val d = parts[2].toIntOrNull() ?: return null
-    return try {
-        val millis = if (type == "شمسی") {
-            val pc = PersianCalendar(TimeZone.getTimeZone("UTC"), Locale("fa", "IR"))
-            pc.clear()
-            pc.setLenient(false)
-            pc.set(PersianCalendar.YEAR, y)
-            pc.set(PersianCalendar.MONTH, m - 1)
-            pc.set(PersianCalendar.DAY_OF_MONTH, d)
-            pc.timeInMillis
-        } else {
-            val c = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US)
-            c.clear(); c.isLenient = false
-            c.set(y, m - 1, d)
-            c.timeInMillis
-        }
-        SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(Date(millis))
-    } catch (_: Exception) { null }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
