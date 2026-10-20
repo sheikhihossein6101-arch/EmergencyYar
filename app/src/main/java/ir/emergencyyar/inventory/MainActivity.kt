@@ -105,8 +105,10 @@ private fun isoToDisplay(iso: String, dateType: String): String {
     val millis = isoToMillis(iso) ?: return iso
     val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US).apply { timeInMillis = millis }
     return if (dateType == "شمسی") {
-        val pc = PersianCalendar(TimeZone.getTimeZone("UTC"), Locale("fa", "IR")).apply { timeInMillis = millis }
-        "%04d/%02d/%02d".format(Locale.US, pc.get(Calendar.YEAR), pc.get(Calendar.MONTH) + 1, pc.get(Calendar.DAY_OF_MONTH))
+val pc = PersianCalendar().apply {
+    timeZone = TimeZone.getTimeZone("UTC")
+    timeInMillis = millis
+}        "%04d/%02d/%02d".format(Locale.US, pc.get(Calendar.YEAR), pc.get(Calendar.MONTH) + 1, pc.get(Calendar.DAY_OF_MONTH))
     } else {
         "%04d/%02d/%02d".format(Locale.US, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
     }
